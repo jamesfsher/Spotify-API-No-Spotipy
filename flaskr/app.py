@@ -32,26 +32,6 @@ TOKEN_INFO = "token_info"
 # Homepage
 @app.route('/homepage')
 def homepage():
-    # Spotipy Code
-        # Get access token
-        # try:
-        #     token_info = get_token()
-        # except:
-        #     # If user reaches page via GET and isn't signed in, redirects to index
-        #     print("User Not Logged In")
-        #     redirect(url_for('index', _external=True))
-        # # Get Spotify API Client using access token
-        # sp = spotipy.Spotify(auth = token_info['access_token'])
-        # # Get current user info
-        # results = sp.current_user()
-        # # Current user's name
-        # name = results["id"]
-        
-        # # Current user profile picture
-        # pfp = results["images"][0]['url']
-        # Render homepage using users name and profile picture
-        # return render_template("homepage.html", name=name, pfp=pfp)
-
     # Get access token
     try:
         token_info = get_token()
@@ -59,8 +39,24 @@ def homepage():
         # If user reaches page via GET and isn't signed in, redirects to index
         print("User Not Logged In")
         redirect(url_for('index', _external=True))
-    
-    return render_template("homepage.html")
+    # Spotipy library tools
+    # sp = spotipy.Spotify(auth = token_info['access_token'])
+    # Url for current user get request
+    current_user_url = "https://api.spotify.com/v1/me"
+    # Headers for current user
+    headers = {
+        "Authorization": "Bearer " + token_info['access_token'],
+    }
+    # Response
+    r = requests.get(current_user_url, headers=headers)
+    # Get current user info using spotipy
+    # results = sp.current_user()
+    # Current user's name
+    name = r.json()["id"]
+    # Current user profile picture
+    pfp = r.json()["images"][0]['url']
+    # Render homepage using users name and profile picture
+    return render_template("homepage.html", name=name, pfp=pfp)
 
 @app.route('/topTracks')
 def topTracks():
@@ -177,9 +173,6 @@ def dwArchiver():
 @app.route('/')
 def index():
     session.clear()
-    # Spotipy code
-        # sp_oauth = create_spotify_oauth()
-        # auth_url = sp_oauth.get_authorize_url()
     auth_url = create_spotify_oauth_url()
     return redirect(auth_url)
 
@@ -187,26 +180,10 @@ def index():
 @app.route('/authorize')
 def authorize():
     session.clear()
-    # Spotipy code
-        #  sp_oauth = create_spotify_oauth()
     code = request.args.get('code')
     token_info = get_token_info(code)
     session[TOKEN_INFO] = token_info
     return redirect(url_for('homepage', _external=True))
-
-    # Spotipy Code
-        # Ensures user hasn't revoked access to app, which revokes refresh token
-        # Link below to article exlaining error handling
-        # https://developer.spotify.com/community/news/2016/07/25/app-ready-token-revoke/
-        # try:
-        #     token_info = sp_oauth.get_access_token(code, check_cache=True)
-        # # If refresh token has been revoked, then new refresh token will be generated
-        # except:
-        #     token_info = sp_oauth.get_access_token(code, check_cache=False)
-        #     print("Refresh token revoked")    
-        # # Updates global token info var to value obtained above
-        # session[TOKEN_INFO] = token_info
-        # return redirect(url_for('homepage', _external=True))
 
 @app.route('/getLibrary')
 def getLibrary():
@@ -325,45 +302,16 @@ def getTracks():
         # User reached reached page via GET
         return redirect(url_for('getLibrary', _external=True))
 
-# Function to get the SpotifyOauth url
-# See Spotipy documentation
-# def create_spotify_oauth():
-#     return SpotifyOAuth(
-#         client_id = Client_ID,
-#         client_secret = Client_Secret,
-#         scope = 'playlist-read-private user-top-read playlist-modify-public',
-#         redirect_uri = 'http://127.0.0.1:5000/authorize')
-
-# Function to obtain current token
-# Spotipy Code
-# def get_token():
-#     # Check current session for token
-#     token_info = session.get(TOKEN_INFO, None)
-#     if not token_info:
-#         # If no token in current session, raise exception
-#         raise "exception"
-#     # Current Unix time
-#     now = int(time.time())
-#     # T/F if token is expired
-#     is_expired = token_info['expires_at'] - now < 0
-#     if is_expired:
-#         sp_oauth = create_spotify_oauth()
-#         # Use refresh token to obtain new access token
-#         token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
-#         print("Used refresh token")
-#     return token_info
-
-
 # Below is Oauth2 authorization workflow without the use of spotipy
 def create_spotify_oauth_url():
     authorization_base_url = "https://accounts.spotify.com/authorize?"
-    client_id2 = config.Client_ID
+    client_id = config.Client_ID
     redirect_uri = "http://127.0.0.1:5000/authorize"
     scope = "playlist-read-private user-top-read playlist-modify-public"
     state = str(''.join(random.choices(string.ascii_uppercase +
                                 string.digits, k=16)))
     params = {
-        "client_id": client_id2,
+        "client_id": client_id,
         "response_type": "code",
         "redirect_uri": redirect_uri,
         "scope": scope,
@@ -374,11 +322,11 @@ def create_spotify_oauth_url():
 
 def get_token_info(authorization_code):
     token_url = "https://accounts.spotify.com/api/token"
-    client_secret2 = config.Client_Secret
-    client_id2 = config.Client_ID
+    client_secret = config.Client_Secret
+    client_id = config.Client_ID
     redirect_uri = "http://127.0.0.1:5000/authorize"
     headers = {
-        "Authorization": "Basic " + base64.urlsafe_b64encode(f"{client_id2}:{client_secret2}".encode()).decode(),
+        "Authorization": "Basic " + base64.urlsafe_b64encode(f"{client_id}:{client_secret}".encode()).decode(),
         "Content-Type": "application/x-www-form-urlencoded"
     }
     data = {
@@ -388,11 +336,6 @@ def get_token_info(authorization_code):
     }
 
     r = requests.post(token_url, headers=headers, data=data)
-    print(r.json())
-    access_token = r.json()["access_token"]
-    refresh_token = r.json()["refresh_token"]
-    print(access_token)
-    print(refresh_token)
     return(r.json())
 
 
@@ -404,11 +347,9 @@ def get_token():
         raise "exception"
     # Current Unix time
     now = int(time.time())
+    token_info["expires_at"] = now + token_info["expires_in"]
     # T/F if token is expired
-    is_expired = token_info['expires_in'] - now < 0
-    print(token_info['expires_in'])
-    print(now)
-    print(is_expired)
+    is_expired = token_info['expires_at'] - now < 60
     if is_expired:
         # Use refresh token to obtain new access token
         token_info = token_refresh()
@@ -419,10 +360,10 @@ def token_refresh():
     token_info = session.get(TOKEN_INFO, None)
     refresh_token = token_info["refresh_token"]
     refresh_token_url = "https://accounts.spotify.com/api/token"
-    client_secret2 = config.Client_Secret
-    client_id2 = config.Client_ID
+    client_secret = config.Client_Secret
+    client_id = config.Client_ID
     headers = {
-        "Authorization": "Basic " + base64.urlsafe_b64encode(f"{client_id2}:{client_secret2}".encode()).decode(),
+        "Authorization": "Basic " + base64.urlsafe_b64encode(f"{client_id}:{client_secret}".encode()).decode(),
         "Content-Type": "application/x-www-form-urlencoded"
     }
     data = {
@@ -431,7 +372,3 @@ def token_refresh():
     }
     r = requests.post(refresh_token_url, headers=headers, data=data)
     return(r.json()["access_token"])
-
-def expires_at():
-    # TODO:
-    print("butt")
