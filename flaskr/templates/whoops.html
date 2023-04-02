@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div class="main">
+    <h1>I did something wrong</h1>
+    <p>Click the link below to go home</p>
+    <form action="/homepage" method="GET">
+        <input type="submit" value="Go to homepage" name="submit" id="submit">
+    </form>
+</div>
+{% endblock %}

@@ -17,7 +17,7 @@
 <label for="long">All Time</label>
 
 
-<div class="tab" id="tracksshort">
+<div class="t1" id="tracksshort">
     <h2>Top Songs From the Last Month</h2>
     <table class="table table-hover">
         <thead>
@@ -39,7 +39,7 @@
     </table>
 </div>
 
-<div class="tab" id="tracksmedium">
+<div class="t1" id="tracksmedium">
     <h2>Top Songs From the Past 6 Months</h2>
     <table class="table table-hover">
         <thead>
@@ -61,7 +61,7 @@
     </table>
 </div>
 
-<div class="tab" id="trackslong">
+<div class="t1" id="trackslong">
     <h2>Top Songs From All Time</h2>
     <table class="table table-hover">
         <thead>
@@ -83,7 +83,7 @@
     </table>
 </div>
 
-<div class="tab" id="artistslong">
+<div class="t1" id="artistslong">
     <h2>Top Artists from All Time</h2>
     <table class="table table-hover">
         <thead>
@@ -111,11 +111,11 @@
     var default_time = document.querySelector('input[name=time]:checked').value;
     var default_selection = '#' + default_type + default_time;
     // Hide all divs with 'tab' class
-    $('div.tab').hide();
+    $('div.t1').hide();
     // Show the div that has an id that matches the default selected radio forms
     $(default_selection).show();
     // Click funtion on the 'type' radio
-   $(document).ready(function() {
+    $(document).ready(function() {
         $('input[type=radio][name=type]').click(function() {
             // Clicked radio form value
             var test = $(this).val();
@@ -136,12 +136,12 @@
             var test = $(this).val();
             var test2 = $('input[name=type]:checked').val();
             var target = "#" + test2 + test
-            $("div.tab").hide();
+            $("div.t1").hide();
             $(target).show();
         });
     });
 
-    // check if jquery loaded (lol)
+    // check if jquery loaded
         //     window.onload = function() {
         //     if (window.jQuery) {  
         //         // jQuery is loaded  

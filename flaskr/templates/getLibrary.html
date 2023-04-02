@@ -2,8 +2,8 @@
 
 {% block body %}
 
-    <div class="mb-3">
-        <h1>Select a Playlist</h1>
+    <div class="main">
+        <h1>Playlist Analyzer</h1>
         <p>These are the playlists found for you account. Please select one to analyze.</p>
         
         <form action="/getTracks" method="POST">
@@ -13,7 +13,7 @@
                 <option value="{{ value }}">{{ key }}</option>
                 {% endfor %}
             </select>
-            <br>
+            <br><br>
             <input type="submit" value="Analyze!">
         </form>
     </div>

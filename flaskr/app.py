@@ -58,6 +58,15 @@ def homepage():
     # Render homepage using users name and profile picture
     return render_template("homepage.html", name=name, pfp=pfp)
 
+@app.route('/logout', methods=['GET', 'POST'])
+def logout():
+    if request.method == 'POST':
+        # redirect to log out
+        logout_url = "http://accounts.spotify.com/en/logout"
+        return redirect(logout_url)
+    else:
+        return redirect(url_for('getTracks', _external=True))
+
 @app.route('/topTracks')
 def topTracks():
     # Get access token
@@ -179,7 +188,6 @@ def index():
 # POST only page to get the refresh and access token
 @app.route('/authorize')
 def authorize():
-    session.clear()
     code = request.args.get('code')
     token_info = get_token_info(code)
     session[TOKEN_INFO] = token_info
@@ -193,10 +201,14 @@ def getLibrary():
         # If user reaches page via GET and isn't signed in, redirects to index
         print("User Not Logged In")
         redirect(url_for('index', _external=True))
-    sp = spotipy.Spotify(auth = token_info['access_token']) 
-    results = sp.current_user_playlists()
+    current_user_playlist_url = "https://api.spotify.com/v1/me/playlists"
+    headers = {
+        "Authorization": "Bearer " + token_info['access_token'],
+        'Content-Type': 'application/json'
+    }
+    r = requests.get(current_user_playlist_url, headers=headers)
     playlists = {}
-    for entry in results['items']:
+    for entry in r.json()['items']:
         playlists[entry["name"]] = entry["id"]
     return render_template("getLibrary.html", playlists=playlists)
 
